@@ -1,4 +1,4 @@
-name: Compile examples for ESP8266
+name: Compile examples for Arduino
 
 on: [push]
 
