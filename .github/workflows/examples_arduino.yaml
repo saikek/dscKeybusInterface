@@ -42,7 +42,9 @@ jobs:
         https://github.com/bblanchon/ArduinoJson \
         https://github.com/taligentx/dscKeybusInterface \
         https://github.com/knolleary/pubsubclient \
-        https://github.com/athombv/homey-arduino-library
+        https://github.com/athombv/homey-arduino-library \
+        https://github.com/arduino-libraries/Ethernet \
+        https://github.com/PaulStoffregen/Time
         
     - name: Run PlatformIO Examples
       run: pio ci --board=uno
