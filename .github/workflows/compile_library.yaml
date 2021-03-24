@@ -1,0 +1,43 @@
+name: Compile Library
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+    steps:
+    - uses: actions/checkout@v2
+    - name: Cache pip
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: ${{ runner.os }}-pip-
+    - name: Cache PlatformIO
+      uses: actions/cache@v2
+      with:
+        path: ~/.platformio
+        key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+    - name: Set up Python
+      uses: actions/setup-python@v2
+    - name: Install PlatformIO
+      run: |
+        python -m pip install --upgrade pip
+        pip install --upgrade platformio
+#     - name: Install 3rd party dependecies
+#       run: | 
+#         pio lib -g install \
+#         https://github.com/SofaPirate/Chrono \
+#         https://github.com/bblanchon/ArduinoJson \
+#         https://github.com/taligentx/dscKeybusInterface \
+#         https://github.com/knolleary/pubsubclient \
+#         https://github.com/athombv/homey-arduino-library \
+#         https://github.com/witnessmenow/Universal-Arduino-Telegram-Bot \
+#         https://github.com/blynkkk/blynk-library \
+#         https://github.com/me-no-dev/ESPAsyncWebServer \
+#         https://github.com/vshymanskyy/TinyGSM
+        
+    - name: Build library
+      run: pio ci --board=lolin32 --exclude=examples
+      
