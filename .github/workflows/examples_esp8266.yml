@@ -7,7 +7,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        example: [ examples/esp8266/**/*.ino ]
+        example: |
+          - examples/esp8266/Email/Email.ino
+          - examples/esp8266/HomeAssistant-MQTT/HomeAssistant-MQTT.ino
     steps:
     - uses: actions/checkout@v2
     - name: Cache pip
