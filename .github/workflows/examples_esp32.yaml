@@ -54,7 +54,8 @@ jobs:
         https://github.com/athombv/homey-arduino-library \
         https://github.com/witnessmenow/Universal-Arduino-Telegram-Bot \
         https://github.com/blynkkk/blynk-library \
-        https://github.com/me-no-dev/ESPAsyncWebServer 
+        https://github.com/me-no-dev/ESPAsyncWebServer \
+        https://github.com/vshymanskyy/TinyGSM
         
     - name: Run PlatformIO Examples
       run: pio ci --board=lolin32
