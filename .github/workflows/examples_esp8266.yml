@@ -29,7 +29,8 @@ jobs:
         pip install --upgrade platformio
     - name: Install 3rd party dependecies
       run: | 
-        pio lib -g install 64 5499
+        pio lib -g install https://github.com/bblanchon/ArduinoJson https://github.com/taligentx/dscKeybusInterface 
+        
     - name: Run PlatformIO Examples
       run: pio ci --board=nodemcuv2
       env:
