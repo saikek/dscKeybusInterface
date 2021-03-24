@@ -35,7 +35,7 @@ jobs:
         https://github.com/taligentx/dscKeybusInterface \
         https://github.com/knolleary/pubsubclient \
         https://github.com/athombv/homey-arduino-library \
-        https://github.com/cotestatnt/AsyncTelegram \
+        https://github.com/witnessmenow/Universal-Arduino-Telegram-Bot \
         https://github.com/blynkkk/blynk-library \
         https://github.com/me-no-dev/ESPAsyncWebServer 
         
