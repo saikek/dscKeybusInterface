@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        example: [ examples/esp8266/Email.ino ]
+        example: [ examples/esp8266/Email/Email.ino ]
     steps:
     - uses: actions/checkout@v2
     - name: Cache pip
