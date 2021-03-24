@@ -29,7 +29,13 @@ jobs:
         pip install --upgrade platformio
     - name: Install 3rd party dependecies
       run: | 
-        pio lib -g install https://github.com/bblanchon/ArduinoJson https://github.com/taligentx/dscKeybusInterface 
+        pio lib -g install https://github.com/bblanchon/ArduinoJson \
+                           https://github.com/taligentx/dscKeybusInterface \
+                          https://github.com/knolleary/pubsubclient \
+                          https://github.com/athombv/homey-arduino-library \
+                          https://github.com/cotestatnt/AsyncTelegram \
+                          https://github.com/blynkkk/blynk-library \
+                          https://github.com/me-no-dev/ESPAsyncWebServer 
         
     - name: Run PlatformIO Examples
       run: pio ci --board=nodemcuv2
