@@ -57,6 +57,86 @@ dscKeybusInterface dsc(dscClockPin, dscReadPin);
 WiFiClientSecure ipClient;
 bool wifiConnected = true;
 
+bool smtpValidResponse() {
+
+  // Waits for a response
+  unsigned long previousMillis = millis();
+  while (!ipClient.available()) {
+    dsc.loop();  // Processes Keybus data while waiting on the SMTP response
+    if (millis() - previousMillis > 3000) {
+      Serial.println(F("Connection timed out waiting for a response."));
+      ipClient.stop();
+      return false;
+    }
+  }
+
+  // Checks the first character of the SMTP reply code - the command was successful if the reply code begins
+  // with "2" or "3"
+  char replyCode = ipClient.read();
+
+  // Successful, reads the remainder of the response to clear the client buffer
+  if (replyCode == '2' || replyCode == '3') {
+    while (ipClient.available()) ipClient.read();
+    return true;
+  }
+
+  // Unsuccessful, prints the response to serial to help debug
+  else {
+    Serial.println(F("Email send error, response:"));
+    Serial.print(replyCode);
+    while (ipClient.available()) Serial.print((char)ipClient.read());
+    Serial.println();
+    ipClient.println(F("QUIT"));
+    smtpValidResponse();
+    ipClient.stop();
+    return false;
+  }
+}
+
+// sendMessage() takes the email subject and body as separate parameters.  Configure the settings for your SMTP
+// server - the login and password must be base64 encoded. For example, on the macOS/Linux terminal:
+// $ echo -n 'mylogin@example.com' | base64 -w 0
+bool sendMessage(const char* messageContent) {
+  if (!ipClient.connect("smtp.example.com", 465)) return false;       // Set the SMTP server address - for example: smtp.gmail.com
+  if(!smtpValidResponse()) return false;
+  ipClient.println(F("HELO ESP32"));
+  if(!smtpValidResponse()) return false;
+  ipClient.println(F("AUTH LOGIN"));
+  if(!smtpValidResponse()) return false;
+  ipClient.println(F("myBase64encodedLogin"));                        // Set the SMTP server login in base64
+  if(!smtpValidResponse()) return false;
+  ipClient.println(F("myBase64encodedPassword"));                     // Set the SMTP server password in base64
+  if(!smtpValidResponse()) return false;
+  ipClient.println(F("MAIL FROM:<sender@example.com>"));              // Set the sender address
+  if(!smtpValidResponse()) return false;
+  ipClient.println(F("RCPT TO:<recipient@example.com>"));             // Set the recipient address - repeat to add multiple recipients
+  if(!smtpValidResponse()) return false;
+  ipClient.println(F("RCPT TO:<recipient2@example.com>"));            // An optional additional recipient
+  if(!smtpValidResponse()) return false;
+  ipClient.println(F("DATA"));
+  if(!smtpValidResponse()) return false;
+  ipClient.println(F("From: Security System <sender@example.com>"));  // Set the sender displayed in the email header
+  ipClient.println(F("To: Recipient <recipient@example.com>"));       // Set the recipient displayed in the email header
+  ipClient.print(F("Subject: "));
+  ipClient.print(messagePrefix);
+  ipClient.println(messageContent);
+  ipClient.println();                                                 // Required blank line between the header and body
+  ipClient.print(messagePrefix);
+  ipClient.println(messageContent);
+  ipClient.println(F("."));
+  if(!smtpValidResponse()) return false;
+  ipClient.println(F("QUIT"));
+  if(!smtpValidResponse()) return false;
+  ipClient.stop();
+  return true;
+}
+
+void appendPartition(byte sourceNumber, char* pushMessage) {
+  char partitionNumber[2];
+  itoa(sourceNumber + 1, partitionNumber, 10);
+  strcat(pushMessage, partitionNumber);
+}
+
 
 void setup() {
   Serial.begin(115200);
@@ -125,12 +205,12 @@ void loop() {
         if (dsc.alarm[partition]) {
           char messageContent[19] = "Alarm: Partition ";
           appendPartition(partition, messageContent);  // Appends the message with the partition number
-          sendMessage(messageContent, messageContent);
+          sendMessage(messageContent);
         }
         else {
           char messageContent[34] = "Disarmed after alarm: Partition ";
           appendPartition(partition, messageContent);  // Appends the message with the partition number
-          sendMessage(messageContent, messageContent);
+          sendMessage(messageContent);
         }
       }
 
@@ -140,12 +220,12 @@ void loop() {
         if (dsc.fire[partition]) {
           char messageContent[24] = "Fire alarm: Partition ";
           appendPartition(partition, messageContent);  // Appends the message with the partition number
-          sendMessage(messageContent, messageContent);
+          sendMessage(messageContent);
         }
         else {
           char messageContent[33] = "Fire alarm restored: Partition ";
           appendPartition(partition, messageContent);  // Appends the message with the partition number
-          sendMessage(messageContent, messageContent);
+          sendMessage(messageContent);
         }
       }
     }
@@ -188,87 +268,4 @@ void loop() {
       sendMessage("Keypad Panic alarm");
     }
   }
-}
-
-
-// sendMessage() takes the email subject and body as separate parameters.  Configure the settings for your SMTP
-// server - the login and password must be base64 encoded. For example, on the macOS/Linux terminal:
-// $ echo -n 'mylogin@example.com' | base64 -w 0
-bool sendMessage(const char* messageContent) {
-  if (!ipClient.connect("smtp.example.com", 465)) return false;       // Set the SMTP server address - for example: smtp.gmail.com
-  if(!smtpValidResponse()) return false;
-  ipClient.println(F("HELO ESP32"));
-  if(!smtpValidResponse()) return false;
-  ipClient.println(F("AUTH LOGIN"));
-  if(!smtpValidResponse()) return false;
-  ipClient.println(F("myBase64encodedLogin"));                        // Set the SMTP server login in base64
-  if(!smtpValidResponse()) return false;
-  ipClient.println(F("myBase64encodedPassword"));                     // Set the SMTP server password in base64
-  if(!smtpValidResponse()) return false;
-  ipClient.println(F("MAIL FROM:<sender@example.com>"));              // Set the sender address
-  if(!smtpValidResponse()) return false;
-  ipClient.println(F("RCPT TO:<recipient@example.com>"));             // Set the recipient address - repeat to add multiple recipients
-  if(!smtpValidResponse()) return false;
-  ipClient.println(F("RCPT TO:<recipient2@example.com>"));            // An optional additional recipient
-  if(!smtpValidResponse()) return false;
-  ipClient.println(F("DATA"));
-  if(!smtpValidResponse()) return false;
-  ipClient.println(F("From: Security System <sender@example.com>"));  // Set the sender displayed in the email header
-  ipClient.println(F("To: Recipient <recipient@example.com>"));       // Set the recipient displayed in the email header
-  ipClient.print(F("Subject: "));
-  ipClient.print(messagePrefix);
-  ipClient.println(messageContent);
-  ipClient.println();                                                 // Required blank line between the header and body
-  ipClient.print(messagePrefix);
-  ipClient.println(messageContent);
-  ipClient.println(F("."));
-  if(!smtpValidResponse()) return false;
-  ipClient.println(F("QUIT"));
-  if(!smtpValidResponse()) return false;
-  ipClient.stop();
-  return true;
-}
-
-
-bool smtpValidResponse() {
-
-  // Waits for a response
-  unsigned long previousMillis = millis();
-  while (!ipClient.available()) {
-    dsc.loop();  // Processes Keybus data while waiting on the SMTP response
-    if (millis() - previousMillis > 3000) {
-      Serial.println(F("Connection timed out waiting for a response."));
-      ipClient.stop();
-      return false;
-    }
-  }
-
-  // Checks the first character of the SMTP reply code - the command was successful if the reply code begins
-  // with "2" or "3"
-  char replyCode = ipClient.read();
-
-  // Successful, reads the remainder of the response to clear the client buffer
-  if (replyCode == '2' || replyCode == '3') {
-    while (ipClient.available()) ipClient.read();
-    return true;
-  }
-
-  // Unsuccessful, prints the response to serial to help debug
-  else {
-    Serial.println(F("Email send error, response:"));
-    Serial.print(replyCode);
-    while (ipClient.available()) Serial.print((char)ipClient.read());
-    Serial.println();
-    ipClient.println(F("QUIT"));
-    smtpValidResponse();
-    ipClient.stop();
-    return false;
-  }
-}
-
-
-void appendPartition(byte sourceNumber, char* pushMessage) {
-  char partitionNumber[2];
-  itoa(sourceNumber + 1, partitionNumber, 10);
-  strcat(pushMessage, partitionNumber);
 }
