@@ -38,5 +38,5 @@ jobs:
 #         https://github.com/vshymanskyy/TinyGSM
 
     - name: Build library
-      run: pio ci --board=lolin32 --exclude=examples
+      run: pio ci --board=lolin32 --exclude=examples src/*
 
