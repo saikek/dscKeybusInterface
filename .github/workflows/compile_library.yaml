@@ -5,7 +5,6 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
     steps:
     - uses: actions/checkout@v2
     - name: Cache pip
@@ -37,7 +36,7 @@ jobs:
 #         https://github.com/blynkkk/blynk-library \
 #         https://github.com/me-no-dev/ESPAsyncWebServer \
 #         https://github.com/vshymanskyy/TinyGSM
-        
+
     - name: Build library
       run: pio ci --board=lolin32 --exclude=examples
-      
+
